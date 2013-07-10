@@ -492,16 +492,57 @@
                     /* Otherwise assume it is a hash already. */
                         var json = data;
                     }
-                    for (var key in json) {
-                        if (!json.hasOwnProperty(key)) {
-                            continue;
-                        }
-                        if ('selected' == key) {
-                            continue;
-                        } 
-                        var option = $('<option />').val(key).append(json[key]);
-                        $('select', this).append(option);    
-                    }                    
+                    /* check if settings.sort has value */
+                    if(settings.sort){
+                        /* build an array of labels to sort */
+ 					                  var order = [];
+						                  $.each(json, function(key){
+						                     	order.push(json[key])
+					                  	});
+                        /* check order value in settings and sort appropriately */
+						                  if(settings.sort.order == 'ASC'){
+							                     order.sort();
+						                  } else {
+							                     order.reverse();
+						                  }
+                        /* create empty object to populate */
+						                  var output = {};
+						                  for(var i = 0; i<order.length; i++){
+                            /* get the text of the lebel to check against json[key] in order to the paired value */
+							                     var label = order[i];
+						                     	for(var key in json){
+                                /* match label in json property values */
+							                        	if(json[key] == label){
+                                    /* create property in output, with array value [value, label] */
+									                           output[i] = [key, label];
+							                    	    }
+							                     }
+						                  }
+                        /* now run through the output object as the original code did, adjusted for arrayed values */
+						                  for(var key in output){
+                            /* hasOwnProperty must be true to continue */
+						                     	if (output.hasOwnProperty(output[key])) {
+								                        continue;
+						                     	}
+						                     	if ('selected' == output[key][0]) {
+					                        			continue;
+					                     		}
+						                     	var option = $('<option />').val(output[key][0]).append(output[key][1]);
+						                     	$('select', this).append(option);
+						                  }
+					               } else {
+                        /* Original code */
+						                  for (var key in json) {
+							                     if (!json.hasOwnProperty(key)) {
+								                        continue;
+							                     }
+						                     	if ('selected' == key) {
+							                        	continue;
+							                     }
+						                     	var option = $('<option />').val(key).append(json[key]);
+						                     	$('select', this).append(option);
+						                  }
+					               }                    
                     /* Loop option again to set selected. IE needed this... */ 
                     $('select', this).children().each(function() {
                         if ($(this).val() == json['selected'] || 
@@ -540,7 +581,8 @@
         placeholder: 'Click to edit',
         loaddata   : {},
         submitdata : {},
-        ajaxoptions: {}
+        ajaxoptions: {},
+        sort       : false //added to account for select sort when type = 'select' -- sort: {order: 'ASC'} or 'DESC'
     };
 
 })(jQuery);
